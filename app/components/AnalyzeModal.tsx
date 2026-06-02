@@ -47,7 +47,11 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
   };
 
   const start = async () => {
-    if (!selectedFile) return;
+    console.log("START CALLED, selectedFile:", selectedFile?.name);
+    if (!selectedFile) {
+      console.log("NO FILE SELECTED");
+      return;
+    }
     setOpen(true);
     setStage("loading");
     setError(null);
@@ -55,32 +59,40 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
     try {
       const supabase = createClient();
 
-      // 1. Supabase Storage'a yükle
       const fileName = `${userId}/${Date.now()}-${selectedFile.name}`;
+      console.log("Uploading to Supabase, fileName:", fileName);
+      
       const { error: uploadError } = await supabase.storage
         .from("product-photos")
         .upload(fileName, selectedFile);
 
-      if (uploadError) throw new Error("Fotoğraf yüklenemedi: " + uploadError.message);
+      if (uploadError) {
+        console.log("UPLOAD ERROR:", uploadError.message);
+        throw new Error("Fotoğraf yüklenemedi: " + uploadError.message);
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from("product-photos")
         .getPublicUrl(fileName);
 
-      // 2. n8n webhook'a gönder
+      console.log("Upload OK, publicUrl:", publicUrl);
+
       const response = await fetch("https://emavia.app.n8n.cloud/webhook/decide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ photo_url: publicUrl, user_id: userId }),
       });
 
+      console.log("n8n response status:", response.status);
+
       const data = await response.json();
-      
-      // n8n [{ results: {...} }] formatında dönüyor
+      console.log("RAW DATA:", JSON.stringify(data));
+
       const res = data[0]?.results || data?.results;
+      console.log("RES:", JSON.stringify(res));
+
       if (!res) throw new Error("Sonuç alınamadı");
 
-      // 3. Supabase'e kaydet
       await supabase.from("search_history").insert({
         user_id: userId,
         photo_url: publicUrl,
@@ -91,6 +103,7 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
       setStage("result");
 
     } catch (err: any) {
+      console.log("CATCH ERROR:", err.message);
       setError(err.message || "Bir hata oluştu");
       setStage("error");
     }
@@ -105,7 +118,6 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
 
   return (
     <>
-      {/* FILE INPUT */}
       <label>Product photo
         <input
           ref={fileInputRef}
@@ -132,12 +144,10 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
         Analyze
       </button>
 
-      {/* MODAL */}
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="w-full max-w-2xl rounded-2xl p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
 
-            {/* LOADING */}
             {stage === "loading" && (
               <div className="loading-card">
                 <div className="orb" />
@@ -151,7 +161,6 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
               </div>
             )}
 
-            {/* ERROR */}
             {stage === "error" && (
               <div className="result-card">
                 <h2>Bir hata oluştu</h2>
@@ -160,7 +169,6 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
               </div>
             )}
 
-            {/* RESULTS */}
             {stage === "result" && results && (
               <div className="result-card">
                 <p className="eyebrow">Results</p>
@@ -177,7 +185,7 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
                         <p className="product-title" style={{ fontWeight: 600, margin: "4px 0" }}>{product.title}</p>
                         <p className="product-price" style={{ color: "var(--blue)", fontWeight: 700 }}>{product.price}</p>
                         <p className="product-reason" style={{ fontSize: 13, color: "#666", margin: "4px 0 8px" }}>{product.reason}</p>
-                        <a
+                        
                           href={product.link}
                           target="_blank"
                           rel="noopener noreferrer"
