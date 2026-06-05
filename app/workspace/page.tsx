@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar"
 import "@/styles.css"
+import "@/globals.css"
 import { createClient } from "@/utils/supabase/server";
 import AnalyzeModal from "@/components/AnalyzeModal";
 

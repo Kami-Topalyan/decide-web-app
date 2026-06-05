@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { Button } from "@/components/ui/button";
 
 type Stage = "idle" | "loading" | "result" | "error";
 
@@ -47,9 +48,9 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
   };
 
   const start = async () => {
-    console.log("START CALLED, selectedFile:", selectedFile?.name);
+    // console.log("START CALLED, selectedFile:", selectedFile?.name);
     if (!selectedFile) {
-      console.log("NO FILE SELECTED");
+      // console.log("NO FILE SELECTED");
       return;
     }
     setOpen(true);
@@ -60,7 +61,7 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
       const supabase = createClient();
 
       const fileName = `${userId}/${Date.now()}-${selectedFile.name}`;
-      console.log("Uploading to Supabase, fileName:", fileName);
+      // console.log("Uploading to Supabase, fileName:", fileName);
       
       const { error: uploadError } = await supabase.storage
         .from("product-photos")
@@ -86,10 +87,10 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
       console.log("n8n response status:", response.status);
 
       const data = await response.json();
-      console.log("RAW DATA:", JSON.stringify(data));
+      // console.log("RAW DATA:", JSON.stringify(data));
 
       const res = data[0]?.results || data?.results;
-      console.log("RES:", JSON.stringify(res));
+      // console.log("RES:", JSON.stringify(res));
 
       if (!res) throw new Error("Sonuç alınamadı");
 
@@ -98,10 +99,10 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
         photo_url: publicUrl,
         results: res,
       });
-
-      setResults(res);
+      
+      setResults(JSON.parse(res));
       setStage("result");
-
+      
     } catch (err: any) {
       console.log("CATCH ERROR:", err.message);
       setError(err.message || "Bir hata oluştu");
@@ -136,13 +137,14 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
         )}
       </label>
 
-      <button
+      <Button
         onClick={start}
         disabled={!selectedFile}
-        className="primary-btn full"
+        variant={"default"}
+        size={"full"}
       >
         Analyze
-      </button>
+      </Button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -170,38 +172,42 @@ export default function AnalyzeModal({ userId }: { userId: string }) {
             )}
 
             {stage === "result" && results && (
-              <div className="result-card">
+              <div className="bg-black">
                 <p className="eyebrow">Results</p>
-
+                <div className="flex flex-col gap-10">
                 {[results.recommended, results.cheaper, results.safer]
                   .filter(Boolean)
                   .map((product, i) => product && (
-                    <div key={i} className="product-row" style={{ display: "flex", gap: 16, marginBottom: 24, alignItems: "flex-start" }}>
-                      {product.image && (
-                        <img src={product.image} alt={product.title} width={80} height={80} style={{ objectFit: "cover", borderRadius: 8 }} />
-                      )}
-                      <div style={{ flex: 1 }}>
-                        <span className="label-badge">{product.label}</span>
-                        <p className="product-title" style={{ fontWeight: 600, margin: "4px 0" }}>{product.title}</p>
-                        <p className="product-price" style={{ color: "var(--blue)", fontWeight: 700 }}>{product.price}</p>
-                        <p className="product-reason" style={{ fontSize: 13, color: "#666", margin: "4px 0 8px" }}>{product.reason}</p>
+                    <div key={i} className="flex justify-center">
+                        <div className="flex flex-2 justify-center">
+                          {product.image && (
+                            <img src={product.image} alt={product.title} width={160} height={160} style={{ objectFit: "cover", borderRadius: 8 }} />
+                          )}
+                          </div>
+                        <div className="flex flex-3 flex-col justify-center ">
+                          <p className="text-xl text-(--secondary) font-extrabold uppercase">{product.label}</p>
+                          <p className="text-sm">{product.reason}</p>
+                        </div>
+                        <div className="flex flex-1 flex-col justify-center items-center">
+                          <p className="">{product.price}</p>
+                          <a href={product.link} target="_blank">
+                          <Button
+                            
+                          >
+                            
+                            {product.store}
+                          </Button>
+                          </a>
+                        </div>
                         
-                          href={product.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={i === 0 ? "success-btn" : "secondary-btn"}
-                          style={{ display: "inline-block" }}
-                        >
-                          {product.store} → Gör
-                        </a>
                       </div>
-                    </div>
+                      
                   ))}
-
-                <div className="result-actions">
-                  <button className="secondary-btn" onClick={close}>Analyze Another</button>
-                </div>
-                <button onClick={close} className="text-sm text-gray-500 pt-2">Close</button>
+                    <div className="flex justify-between">
+                      <Button variant={"destructive"} onClick={close}>Close</Button>
+                      <Button variant={"default"} onClick={close}>Analyze Another</Button>
+                    </div>
+                  </div>
               </div>
             )}
 
