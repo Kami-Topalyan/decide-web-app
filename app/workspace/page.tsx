@@ -1,7 +1,7 @@
 import Navbar from "@/components/Navbar"
 import "@/globals.css"
 import { createClient } from "@/utils/supabase/server";
-import AnalyzeModal from "@/components/AnalyzeModal";
+import AnalyzeModal from "@/components/analyze/AnalyzeModal";
 
 export default async function workspace() {
   const supabase = await createClient();
