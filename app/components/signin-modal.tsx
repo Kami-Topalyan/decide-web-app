@@ -79,7 +79,7 @@ export default function SignInModal({
             variant={"default"}
             size={"full"}
           >
-            {loading ? "Creating..." : "Sign Up"}
+            {loading ? "Authorizing..." : "Sign In"}
           </Button>
         </form>
 
