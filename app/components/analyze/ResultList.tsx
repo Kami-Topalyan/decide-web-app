@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { Results, SLOT_LABELS, cleanStoreName } from "./types";
 
 export function ResultList({
@@ -13,6 +15,8 @@ export function ResultList({
   close: () => void;
   analyzeAnother: () => void;
 }) {
+  const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
+
   const slots = [
     { key: "recommended" as const, product: results.recommended },
     { key: "cheaper" as const, product: results.cheaper },
@@ -56,9 +60,31 @@ export function ResultList({
           )
         )}
 
-        <div className="flex justify-between">
-          <Button variant="destructive" onClick={close}>Kapat</Button>
-          <Button variant="default" onClick={analyzeAnother}>Yeni Analiz</Button>
+        <div className="flex flex-col gap-4 pt-6 border-t border-border/50">
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-sm font-medium text-muted-foreground">Bu sonuçlar faydalı oldu mu?</p>
+            <div className="flex gap-4">
+              <Button 
+                variant={feedback === "up" ? "default" : "outline"} 
+                size="icon"
+                onClick={() => setFeedback("up")}
+              >
+                <ThumbsUp className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant={feedback === "down" ? "default" : "outline"} 
+                size="icon"
+                onClick={() => setFeedback("down")}
+              >
+                <ThumbsDown className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex justify-between mt-2">
+            <Button variant="destructive" onClick={close}>Kapat</Button>
+            <Button variant="default" onClick={analyzeAnother}>Yeni Analiz</Button>
+          </div>
         </div>
       </div>
     </div>
