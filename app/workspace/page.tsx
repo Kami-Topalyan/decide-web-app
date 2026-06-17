@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar"
 import "@/globals.css"
 import { createClient } from "@/utils/supabase/server";
 import AnalyzeModal from "@/components/analyze/AnalyzeModal";
+import OnboardingModal from "@/components/onboarding-modal";
 
 export default async function workspace() {
   const supabase = await createClient();
@@ -17,11 +18,23 @@ export default async function workspace() {
     .eq("id", user.id)
     .single();
 
+  const { data: userPreferences } = await supabase
+    .from("user_preferences")
+    .select("id")
+    .eq("id", user.id)
+    .single();
+
   if (error) return <p>Profil yüklenemedi</p>;
 
+  // Check if onboarding data is missing in user_preferences table
+  const needsOnboarding = !userPreferences;
+
   return (
-    <div className="w-full max-w-6xl min-h-screen mx-auto px-10 py-4">
+    <div className="w-full max-w-6xl min-h-screen mx-auto px-10 py-4 relative">
       <Navbar />
+      
+      {needsOnboarding && <OnboardingModal userId={user.id} />}
+
       <section aria-label="Karar alanı">
         <div className="flex flex-col py-10 gap-2">
           <p className="text-secondary text-xs font-extrabold tracking-widest uppercase">

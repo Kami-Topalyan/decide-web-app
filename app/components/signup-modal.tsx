@@ -63,7 +63,7 @@ export default function SignUpModal({
           <h2 className="text-2xl font-bold leading-none">Enter DECIDE.</h2>
         </div>
 
-        <div className="flex flex-col gap-3" onSubmit={handleSignUp}>
+        <form className="flex flex-col gap-3" onSubmit={handleSignUp}>
           <input
             placeholder="Name"
             value={name}
@@ -91,7 +91,7 @@ export default function SignUpModal({
           >
             {loading ? "Creating..." : "Sign Up"}
           </Button>
-        </div>
+        </form>
 
         {message && (
           <p className="text-sm text-muted-foreground text-center mt-1">
