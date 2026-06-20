@@ -1,0 +1,10 @@
+{
+    "HomePage": {
+        "title": "AI buying decision",
+        "question": "Should I buy this?",
+        "reason": "Upload what you want. DECIDE gives one clear answer.",
+        "join_button": "Start",
+        "example": "Example verdict",
+        "buy_text": "buy"
+    }
+}
